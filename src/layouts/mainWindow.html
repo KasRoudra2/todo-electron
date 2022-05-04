@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css"
+    />
+    <link href="./styles.css" rel="stylesheet" />
+    <title>To Do List</title>
+  </head>
+  <body>
+    <div class="container">
+      <h4 class="p-3 mx-3">My To Do List</h4>
+      <ul class="list">
+        <!-- <li class="list-group-item d-flex justify-content-between">
+          ${item}<i class="bi bi-trash3-fill"></i>
+        </li> -->
+      </ul>
+    </div>
+
+    <!-- You can also require other files to run in this process -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+      crossorigin="anonymous"
+    ></script>
+    <script src="./renderer.js"></script>
+    <script>
+      const electron = require("electron");
+      const { ipcRenderer } = electron;
+      const list = document.querySelector(".list");
+      ipcRenderer.on("add-item", (event, item) => {
+        console.log("add");
+        list.classList.add = "list-group";
+        const listItem = `<li class="list-group-item d-flex justify-content-between">
+          ${item}<span><i class="bi bi-pencil-fill px-2"></i><i class="bi bi-trash3-fill"></i></span>
+        </li>`;
+        if (item) list.innerHTML += listItem;
+        document.querySelectorAll(".bi-trash3-fill").forEach((icon) => {
+          icon.addEventListener("click", (e) => {
+            e.target.parentElement.parentElement.remove();
+          });
+        });
+        document.querySelectorAll(".bi-pencil-fill").forEach((icon) => {
+          icon.addEventListener("click", (e) => {
+            e.target.parentElement.parentElement.classList.add("editing");
+            ipcRenderer.send("edit-item", e.target.parentElement.parentElement.innerText);
+          });
+        });
+      });
+      ipcRenderer.on("edited-item", (event, item) => {
+        console.log("edit", item)
+        if(document.querySelector(".editing") && item) {
+          document.querySelector(".editing").innerText = item;
+          document.querySelector(".editing").classList.remove("editing");
+        }
+      });
+      ipcRenderer.on("clear-items", (event) => {
+        list.innerHTML = "";
+      });
+    </script>
+  </body>
+</html>
